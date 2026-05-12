@@ -53,6 +53,41 @@ export const INITIAL_PROJECTS = [
     type: "video" as const,
     tags: ["UE5", "C4D"],
   },
-  // We will allow adding 6 videos and 4 images in the CMS
+  {
+    id: "v2",
+    title: "未来城邦",
+    titleEn: "Future Metropolis",
+    category: "概念设计",
+    categoryEn: "Concept Design",
+    description: "赛博朋克风格未来城市概念设计。",
+    descriptionEn: "Cyberpunk style future city concept design.",
+    mediaUrl: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=2000",
+    type: "image" as const,
+    tags: ["Blender", "Photoshop"],
+  },
+  {
+    id: "v3",
+    title: "自然之居",
+    titleEn: "Nature's Dwelling",
+    category: "建筑可视化",
+    categoryEn: "ArchViz",
+    description: "融合自然环境的现代建筑室内外渲染。",
+    descriptionEn: "Modern architecture rendering blending with natural environment.",
+    mediaUrl: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80&w=2000",
+    type: "image" as const,
+    tags: ["3ds Max", "Corona", "V-Ray"],
+  },
+  {
+    id: "v4",
+    title: "虚拟地貌",
+    titleEn: "Virtual Terrain",
+    category: "环境设计",
+    categoryEn: "Environment Design",
+    description: "基于分形生成的外星地貌生态探索。",
+    descriptionEn: "Fractal-based alien terrain ecology exploration.",
+    mediaUrl: "https://images.unsplash.com/photo-1464802686167-b939a6910659?auto=format&fit=crop&q=80&w=2000",
+    type: "image" as const,
+    tags: ["UE5", "World Creator", "Substance"],
+  }
 ];
 

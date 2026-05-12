@@ -141,13 +141,23 @@ const HandTracker = React.memo(({ onResults, onStatusChange, gestureActive = fal
     const initHands = async () => {
       try {
         if (!(window as any).globalHandsInstance) {
+          let useFallbackCdn = false;
           // Dynamically load hands.js to avoid bundler issues
           if (!(window as any).Hands) {
             await new Promise((resolve, reject) => {
               const script = document.createElement('script');
               script.src = '/hands-assets/hands.js';
               script.onload = resolve;
-              script.onerror = () => reject(new Error('Failed to load MediaPipe script'));
+              script.onerror = () => {
+                console.warn("Local hands.js failed, trying CDN...");
+                useFallbackCdn = true;
+                const cdnScript = document.createElement('script');
+                cdnScript.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js';
+                cdnScript.crossOrigin = "anonymous";
+                cdnScript.onload = resolve;
+                cdnScript.onerror = () => reject(new Error('Failed to load MediaPipe script'));
+                document.head.appendChild(cdnScript);
+              };
               document.head.appendChild(script);
             });
           }
@@ -155,6 +165,9 @@ const HandTracker = React.memo(({ onResults, onStatusChange, gestureActive = fal
           const GlobalHands = (window as any).Hands;
           hands = new GlobalHands({
             locateFile: (file: string) => {
+              if (useFallbackCdn) {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`;
+              }
               return `/hands-assets/${file}`;
             }
           });
@@ -351,7 +364,7 @@ const HandTracker = React.memo(({ onResults, onStatusChange, gestureActive = fal
       {/* Video Feed */}
       <video
         ref={videoRef}
-        className="absolute inset-0 w-full h-full object-cover opacity-30 blur-[4px] pointer-events-none saturate-50"
+        className="absolute inset-0 w-full h-full object-cover"
         style={{ transform: 'scaleX(-1)' }}
         muted
         playsInline

@@ -7,10 +7,7 @@ import { Box, Rotate3d, Settings, Info, Camera, Sparkles, Wand2, Plus } from "lu
 import { useApp } from "../AppContext";
 import ParticleSystem from "./showcase/ParticleSystem";
 import HandTracker from "./showcase/HandTracker";
-import { GoogleGenAI } from "@google/genai";
 import { saveToDB } from "../lib/storage";
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export default function Showcase3D() {
   const { lang, config, setConfig, isPaused, setIsPaused } = useApp();

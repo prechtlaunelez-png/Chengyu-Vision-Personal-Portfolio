@@ -71,6 +71,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             parsed.showcaseModels = await resolveBlobs(parsed.showcaseModels);
           }
           
+          if (!parsed.heroVideo) {
+            parsed.heroVideo = INITIAL_CONFIG.heroVideo;
+          }
+          
           setConfig({ 
             ...INITIAL_CONFIG, 
             ...parsed, 
@@ -92,7 +96,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             }
             return p;
           }));
-          setProjects(resolvedProjects);
+          let finalProjects = resolvedProjects;
+          // If the DB only has the old single default project, replace it with the new setup
+          if (finalProjects.length === 1 && finalProjects[0].id === 'v1' && finalProjects[0].title === '星际轨道站') {
+            finalProjects = INITIAL_PROJECTS;
+          }
+          setProjects(finalProjects);
         }
       } catch (e) {
         console.error("IDB Load Error:", e);

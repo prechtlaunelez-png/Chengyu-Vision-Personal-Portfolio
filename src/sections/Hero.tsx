@@ -9,9 +9,11 @@ export default function Hero() {
   const { scrollY } = useScroll();
   const y = useTransform(scrollY, [0, 500], [0, 200]);
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+  const videoOpacity = useTransform(scrollY, [0, 500], [0.6, 0]);
   const scale = useTransform(scrollY, [0, 500], [1, 1.1]);
   const parallaxHyper = useTransform(scrollY, [0, 500], [0, -50]);
   const parallaxDesigner = useTransform(scrollY, [0, 500], [0, 30]);
+  const videoParallax = useTransform(scrollY, [0, 500], [0, 100]);
 
   return (
     <section 
@@ -19,6 +21,7 @@ export default function Hero() {
       ref={containerRef}
       className="relative h-screen flex flex-col items-center lg:items-start justify-center overflow-hidden px-6 md:px-12 lg:px-24"
     >
+      {/* Hero Content */}
       <motion.div 
         style={{ y, opacity, scale }}
         className="z-10 lg:w-1/2"
