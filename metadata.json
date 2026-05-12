@@ -1,0 +1,6 @@
+{
+  "name": "Aura Digital Portfolio",
+  "description": "A high-end, immersive, and futuristic portfolio for a digital architect and 3D artist, featuring cinematic animations and 3D showcases.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": []
+}
