@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { Mail, MessageSquare, Send, ArrowRight } from "lucide-react";
+import { Mail, MessageSquare, Send, ArrowRight, Phone } from "lucide-react";
 import { useApp } from "../AppContext";
 
 export default function Contact() {
@@ -39,8 +39,17 @@ export default function Contact() {
                         <Mail size={20} />
                       </div>
                       <div>
-                         <p className="text-[10px] uppercase tracking-widest text-white/30 mb-1">Email</p>
-                         <p className="text-lg font-display">zc999166@gmail.com</p>
+                         <p className="text-[10px] uppercase tracking-widest text-white/30 mb-1">Email / {lang === 'zh' ? '合作邮箱' : 'Cooperation Email'}</p>
+                         <p className="text-lg font-display">3335355856@qq.com</p>
+                      </div>
+                   </div>
+                   <div className="flex items-center gap-6 group cursor-pointer">
+                      <div className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center group-hover:border-neon-blue group-hover:text-neon-blue transition-all">
+                        <Phone size={20} />
+                      </div>
+                      <div>
+                         <p className="text-[10px] uppercase tracking-widest text-white/30 mb-1">Phone / {lang === 'zh' ? '联系方式' : 'Contact'}</p>
+                         <p className="text-lg font-display">13397587439</p>
                       </div>
                    </div>
                    <div className="flex items-center gap-6 group cursor-pointer">
@@ -48,8 +57,8 @@ export default function Contact() {
                         <MessageSquare size={20} />
                       </div>
                       <div>
-                         <p className="text-[10px] uppercase tracking-widest text-white/30 mb-1">Social</p>
-                         <p className="text-lg font-display">@aura_zc</p>
+                         <p className="text-[10px] uppercase tracking-widest text-white/30 mb-1">WeChat / {lang === 'zh' ? '微信' : 'WeChat'}</p>
+                         <p className="text-lg font-display">zc999166zc</p>
                       </div>
                    </div>
                 </div>
