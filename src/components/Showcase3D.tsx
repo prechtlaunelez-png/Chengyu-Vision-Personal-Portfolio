@@ -8,6 +8,7 @@ import { useApp } from "../AppContext";
 import ParticleSystem from "./showcase/ParticleSystem";
 import HandTracker from "./showcase/HandTracker";
 import { saveToDB } from "../lib/storage";
+import { getDirectUrl } from "../lib/utils";
 
 export default function Showcase3D() {
   const { lang, config, setConfig, isPaused, setIsPaused } = useApp();
@@ -313,9 +314,11 @@ export default function Showcase3D() {
               
               <group scale={handScale} rotation={[0, handPos.x, 0]}>
                 <ParticleSystem 
-                  modelUrl={currentModel?.url} 
-                  mtlUrl={currentModel?.mtlUrl}
-                  textures={currentModel?.textures}
+                  modelUrl={getDirectUrl(currentModel?.url)} 
+                  mtlUrl={getDirectUrl(currentModel?.mtlUrl)}
+                  textures={currentModel?.textures ? Object.fromEntries(
+                    Object.entries(currentModel.textures).map(([k, v]) => [k, getDirectUrl(v as string)])
+                  ) : undefined}
                   morphProgress={morphProgress} 
                   handVector={handVector} 
                   isPaused={isPaused}

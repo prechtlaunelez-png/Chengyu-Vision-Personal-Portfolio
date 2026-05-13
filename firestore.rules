@@ -1,0 +1,108 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isVerified() && request.auth.token.email == 'prechtlaunelez@gmail.com';
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Validation Helpers ---
+
+    function isValidConfig(data) {
+      return data.keys().hasAll(['author', 'updatedAt']) &&
+             data.author is string && data.author.size() <= 100 &&
+             data.updatedAt is timestamp &&
+             (data.logo is string && data.logo.size() <= 1048576) && // 1MB limit check
+             (data.profilePic is string && data.profilePic.size() <= 1048576);
+    }
+
+    function isValidProject(data) {
+      return data.keys().hasAll(['id', 'title', 'type', 'mediaUrl']) &&
+             data.id is string && data.id.size() <= 50 &&
+             data.title is string && data.title.size() <= 500 &&
+             data.type in ['image', 'video'] &&
+             data.mediaUrl is string && data.mediaUrl.size() <= 1048576; // Support blob IDs or small embedded media
+    }
+
+    function isValidAsset(data) {
+      return data.keys().hasAll(['id', 'data', 'mimeType']) &&
+             data.id is string &&
+             data.data is string && data.data.size() <= 1048576; // 1MB limit check
+    }
+
+    function isValidMessage(data) {
+      return data.keys().hasAll(['name', 'email', 'message', 'createdAt', 'status']) &&
+             data.name is string && data.name.size() <= 200 &&
+             data.email is string && data.email.size() <= 200 &&
+             data.message is string && data.message.size() <= 5000 &&
+             data.status in ['unread', 'read', 'archived'] &&
+             data.createdAt == request.time;
+    }
+
+    // --- Collection Routes ---
+
+    // Admins Collection (Only for role checking)
+    match /admins/{adminId} {
+      allow get: if isVerified();
+      allow list: if isAdmin();
+      allow write: if false; 
+    }
+
+    // Site Config
+    match /configs/{configId} {
+      allow get: if true; 
+      allow list: if isAdmin(); // Consumers only need 'main'
+      allow write: if isAdmin() && configId == 'main' && isValidConfig(incoming());
+    }
+
+    // Projects
+    match /projects/{projectId} {
+      allow get, list: if true; 
+      allow create: if isAdmin() && isValidId(projectId) && isValidProject(incoming());
+      allow update: if isAdmin() && isValidProject(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // Assets (Small files)
+    match /assets/{assetId} {
+      allow get: if true; 
+      allow list: if isAdmin(); // Direct assets are requested by ID
+      allow create: if isAdmin() && isValidId(assetId) && isValidAsset(incoming());
+      allow update: if isAdmin() && isValidAsset(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // Messages
+    match /messages/{messageId} {
+      allow get, list: if isAdmin();
+      allow create: if isValidMessage(incoming());
+      allow update: if isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['status']);
+      allow delete: if isAdmin();
+    }
+  }
+}

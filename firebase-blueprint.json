@@ -1,0 +1,111 @@
+{
+  "entities": {
+    "SiteConfig": {
+      "title": "Site Configuration",
+      "description": "Global settings for the portfolio site",
+      "type": "object",
+      "properties": {
+        "author": { "type": "string" },
+        "authorEn": { "type": "string" },
+        "university": { "type": "string" },
+        "universityEn": { "type": "string" },
+        "major": { "type": "string" },
+        "majorEn": { "type": "string" },
+        "logo": { "type": "string" },
+        "profilePic": { "type": "string" },
+        "showcaseTitle": { "type": "string" },
+        "showcaseTitleEn": { "type": "string" },
+        "showcaseDesc": { "type": "string" },
+        "showcaseDescEn": { "type": "string" },
+        "showcaseStats": {
+          "type": "object",
+          "properties": {
+            "polygons": { "type": "string" },
+            "platform": { "type": "string" }
+          }
+        },
+        "heroVideo": { "type": "string" },
+        "awards": { "type": "array", "items": { "type": "string" } },
+        "awardsEn": { "type": "array", "items": { "type": "string" } },
+        "showcaseModels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "url": { "type": "string" },
+              "mtlUrl": { "type": "string" },
+              "description": { "type": "string" }
+            }
+          }
+        },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "updatedBy": { "type": "string" }
+      }
+    },
+    "Project": {
+      "title": "Project",
+      "description": "A portfolio project entry",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "titleEn": { "type": "string" },
+        "category": { "type": "string" },
+        "categoryEn": { "type": "string" },
+        "description": { "type": "string" },
+        "descriptionEn": { "type": "string" },
+        "mediaUrl": { "type": "string" },
+        "type": { "type": "string", "enum": ["image", "video"] },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "order": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Asset": {
+      "title": "Asset",
+      "description": "Base64 encoded media asset (for persistence without Storage)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "data": { "type": "string" },
+        "mimeType": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Message": {
+      "title": "Contact Message",
+      "description": "A message submitted via the contact form",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "wechat": { "type": "string" },
+        "message": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["unread", "read", "archived"] }
+      }
+    }
+  },
+  "firestore": {
+    "configs/main": {
+      "schema": "SiteConfig",
+      "description": "Global configuration document"
+    },
+    "projects": {
+      "schema": "Project",
+      "description": "Collection of projects"
+    },
+    "assets": {
+      "schema": "Asset",
+      "description": "Collection of small base64 encoded media files"
+    },
+    "messages": {
+      "schema": "Message",
+      "description": "Lead and contact message collection"
+    }
+  }
+}

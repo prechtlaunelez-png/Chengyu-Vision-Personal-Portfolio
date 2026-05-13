@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { ExternalLink, Play, X, Volume2, VolumeX, Pause, RefreshCw } from "lucide-react";
 import { useApp } from "../AppContext";
 import { Project } from "../types";
+import { getDirectUrl, getEmbedUrl } from "../lib/utils";
 
 export default function Portfolio() {
   const { lang, projects } = useApp();
@@ -89,13 +90,15 @@ function ProjectCard({ project, index, lang, onOpen }: { project: Project; index
     >
       <div className="relative aspect-[16/10] overflow-hidden rounded-sm bg-zinc-900 border border-white/5">
         {project.type === 'video' ? (
-          project.mediaUrl ? (
+          project.mediaUrl || project.coverUrl ? (
             <video 
-               src={project.mediaUrl}
+               src={getDirectUrl(project.mediaUrl)}
+               poster={getDirectUrl(project.coverUrl || '')}
                autoPlay 
                muted 
                loop 
                playsInline
+               referrerPolicy="no-referrer"
                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 filter grayscale group-hover:grayscale-0 shadow-2xl"
             />
           ) : (
@@ -105,8 +108,9 @@ function ProjectCard({ project, index, lang, onOpen }: { project: Project; index
           )
         ) : (
           <img
-            src={project.mediaUrl || "https://images.unsplash.com/photo-1614728263952-84ea206f99b6?auto=format&fit=crop&q=80&w=2000"}
+            src={getDirectUrl(project.mediaUrl) || "https://images.unsplash.com/photo-1614728263952-84ea206f99b6?auto=format&fit=crop&q=80&w=2000"}
             alt={project.title}
+            referrerPolicy="no-referrer"
             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 filter grayscale group-hover:grayscale-0 shadow-2xl"
           />
         )}
@@ -153,7 +157,10 @@ function VideoModal({ project, lang, onClose }: { project: Project, lang: string
   const [isMuted, setIsMuted] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showEmbed, setShowEmbed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  
+  const embedUrl = project.mediaUrl ? getEmbedUrl(project.mediaUrl) : null;
   
   const togglePlay = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -186,7 +193,7 @@ function VideoModal({ project, lang, onClose }: { project: Project, lang: string
   // Initial setup: try to play (likely muted first)
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (videoRef.current && !isPlaying) {
+      if (videoRef.current && !isPlaying && !showEmbed) {
          videoRef.current.play().then(() => {
            setIsPlaying(true);
          }).catch(() => {
@@ -195,7 +202,7 @@ function VideoModal({ project, lang, onClose }: { project: Project, lang: string
       }
     }, 800);
     return () => clearTimeout(timer);
-  }, []);
+  }, [showEmbed]);
 
   return (
     <motion.div 
@@ -218,8 +225,16 @@ function VideoModal({ project, lang, onClose }: { project: Project, lang: string
            {isLoading && (
               <div className="flex items-center gap-3 bg-black/40 px-4 py-2 rounded-full border border-white/10 backdrop-blur-md">
                 <RefreshCw size={14} className="animate-spin text-neon-blue" />
-                <span className="text-[10px] uppercase tracking-widest text-white/50">Buffering Data...</span>
+                <span className="text-[10px] uppercase tracking-widest text-white/50">{lang === 'zh' ? '正在加载数据...' : 'Buffering Data...'}</span>
               </div>
+           )}
+           {embedUrl && !showEmbed && (
+             <button 
+              onClick={() => setShowEmbed(true)}
+              className="px-4 py-2 bg-neon-blue/20 hover:bg-neon-blue/30 text-neon-blue rounded-full border border-neon-blue/30 text-[10px] uppercase tracking-widest transition-all"
+             >
+               {lang === 'zh' ? '加载失败？点击使用预览模式' : 'Load failed? Try Preview Mode'}
+             </button>
            )}
            <button 
              onClick={() => setIsFullscreen(!isFullscreen)}
@@ -240,13 +255,22 @@ function VideoModal({ project, lang, onClose }: { project: Project, lang: string
 
         {project.type === 'video' ? (
           <div className="relative flex-1 group/player bg-black overflow-hidden">
-            {project.mediaUrl ? (
+            {showEmbed && embedUrl ? (
+              <iframe 
+                src={embedUrl} 
+                className="w-full h-full border-0" 
+                allow="autoplay; fullscreen"
+                onLoad={() => setIsLoading(false)}
+              />
+            ) : project.mediaUrl ? (
               <video 
                 ref={videoRef}
-                src={project.mediaUrl}
+                src={getDirectUrl(project.mediaUrl)}
+                poster={getDirectUrl(project.coverUrl || '')}
                 muted={isMuted}
                 loop 
                 playsInline
+                referrerPolicy="no-referrer"
                 className={`w-full h-full cursor-pointer ${isFullscreen ? 'object-contain' : 'object-cover'}`}
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
@@ -254,9 +278,12 @@ function VideoModal({ project, lang, onClose }: { project: Project, lang: string
                 onCanPlay={() => setIsLoading(false)}
                 onLoadStart={() => setIsLoading(true)}
                 onLoadedData={() => setIsLoading(false)}
-                onError={() => {
+                onError={(e) => {
                   console.warn("Video failed to load: " + project.mediaUrl);
                   setIsLoading(false);
+                  if (project.mediaUrl.includes('google.com')) {
+                    setShowEmbed(true);
+                  }
                 }}
                 onClick={togglePlay}
               />
@@ -264,64 +291,66 @@ function VideoModal({ project, lang, onClose }: { project: Project, lang: string
               <div className="w-full h-full flex items-center justify-center text-white/40 text-xs">No Video Available</div>
             )}
             
-            {/* Custom Controls Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover/player:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-8 pointer-events-none">
-               <div className="flex items-center justify-between pointer-events-auto">
-                  <div className="flex items-center gap-6">
-                     <button 
-                       onClick={togglePlay}
-                       className="p-4 bg-white text-black rounded-full hover:scale-110 transition-transform shadow-xl"
-                     >
-                       {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" className="ml-1" />}
-                     </button>
-                     <div className="flex items-center gap-3 bg-black/40 px-3 py-2 rounded-full border border-white/10 backdrop-blur-md">
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setIsMuted(!isMuted);
-                            if (isMuted) {
-                              if (videoRef.current) videoRef.current.muted = false;
-                              setIsPlaying(true);
-                            }
-                          }}
-                          className={`p-2 rounded-full transition-all ${!isMuted ? 'text-neon-blue' : 'text-white/40'}`}
-                        >
-                          {!isMuted ? <Volume2 size={20} /> : <VolumeX size={20} />}
-                        </button>
-                        <input 
-                          type="range" 
-                          min="0" 
-                          max="1" 
-                          step="0.1" 
-                          defaultValue="0.5"
-                          className="w-20 accent-neon-blue h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
-                          onChange={(e) => {
-                            if (videoRef.current) {
-                              videoRef.current.volume = parseFloat(e.target.value);
-                              if (videoRef.current.volume > 0) {
-                                setIsMuted(false);
-                                videoRef.current.muted = false;
+            {/* Custom Controls Overlay (Only if not in embed mode) */}
+            {!showEmbed && (
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover/player:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-8 pointer-events-none">
+                <div className="flex items-center justify-between pointer-events-auto">
+                    <div className="flex items-center gap-6">
+                      <button 
+                        onClick={togglePlay}
+                        className="p-4 bg-white text-black rounded-full hover:scale-110 transition-transform shadow-xl"
+                      >
+                        {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" className="ml-1" />}
+                      </button>
+                      <div className="flex items-center gap-3 bg-black/40 px-3 py-2 rounded-full border border-white/10 backdrop-blur-md">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsMuted(!isMuted);
+                              if (isMuted) {
+                                if (videoRef.current) videoRef.current.muted = false;
+                                setIsPlaying(true);
                               }
-                            }
-                          }}
-                          onClick={e => e.stopPropagation()}
-                        />
-                     </div>
-                  </div>
-                  
-                  <div className="text-right">
-                    <h4 className="text-xl font-display uppercase tracking-widest text-white mb-1 drop-shadow-md">
-                      {lang === 'zh' ? project.title : project.titleEn}
-                    </h4>
-                    <p className="text-[10px] uppercase tracking-[0.3em] text-neon-blue font-bold">
-                      {lang === 'zh' ? project.category : project.categoryEn}
-                    </p>
-                  </div>
-               </div>
-            </div>
+                            }}
+                            className={`p-2 rounded-full transition-all ${!isMuted ? 'text-neon-blue' : 'text-white/40'}`}
+                          >
+                            {!isMuted ? <Volume2 size={20} /> : <VolumeX size={20} />}
+                          </button>
+                          <input 
+                            type="range" 
+                            min="0" 
+                            max="1" 
+                            step="0.1" 
+                            defaultValue="0.5"
+                            className="w-20 accent-neon-blue h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
+                            onChange={(e) => {
+                              if (videoRef.current) {
+                                videoRef.current.volume = parseFloat(e.target.value);
+                                if (videoRef.current.volume > 0) {
+                                  setIsMuted(false);
+                                  videoRef.current.muted = false;
+                                }
+                              }
+                            }}
+                            onClick={e => e.stopPropagation()}
+                          />
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <h4 className="text-xl font-display uppercase tracking-widest text-white mb-1 drop-shadow-md">
+                        {lang === 'zh' ? project.title : project.titleEn}
+                      </h4>
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-neon-blue font-bold">
+                        {lang === 'zh' ? project.category : project.categoryEn}
+                      </p>
+                    </div>
+                </div>
+              </div>
+            )}
             
             {/* Initial Play with Sound Prompt if muted and paused by browser */}
-            {!isPlaying && !isLoading && (
+            {!isPlaying && !isLoading && !showEmbed && (
               <div 
                 className="absolute inset-0 flex items-center justify-center bg-black/60 cursor-pointer backdrop-blur-[2px]" 
                 onClick={() => {
@@ -349,7 +378,7 @@ function VideoModal({ project, lang, onClose }: { project: Project, lang: string
         ) : (
           <div className="flex-1 overflow-hidden">
             <img 
-              src={project.mediaUrl} 
+              src={getDirectUrl(project.mediaUrl)} 
               alt={project.title} 
               className="w-full h-full object-contain"
             />

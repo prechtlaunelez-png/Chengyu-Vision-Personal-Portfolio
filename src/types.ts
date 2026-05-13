@@ -8,8 +8,10 @@ export interface Project {
   description: string;
   descriptionEn: string;
   mediaUrl: string;
+  coverUrl?: string;
   type: 'image' | 'video';
   tags: string[];
+  order?: number;
 }
 
 export interface SiteConfig {
@@ -34,4 +36,15 @@ export interface SiteConfig {
   heroVideo: string;
   awards: string[];
   awardsEn: string[];
+}
+
+export interface Message {
+  id?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  wechat?: string;
+  message: string;
+  createdAt: any;
+  status: 'unread' | 'read' | 'archived';
 }
